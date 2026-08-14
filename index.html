@@ -278,9 +278,11 @@
   </div>
 
   <script>
-    // Base URL of the pgl_proxy API. Edit before deploying if the proxy
-    // moves; no build step is used, so this is a plain constant.
-    const API_BASE_URL = "https://pgl-proxy.vercel.app/";
+    // Base URL of pgl_auth_server (the token-issuing auth API, not
+    // pgl_proxy — registration/credentials live there). Edit before
+    // deploying if it moves; no build step is used, so this is a plain
+    // constant.
+    const API_BASE_URL = "https://pgl-auth-server.vercel.app";
 
     const form = document.getElementById("register-form");
     const matriculaInput = document.getElementById("matricula");
@@ -360,7 +362,7 @@
     }
 
     async function registerStudent(matricula, senha) {
-      const response = await fetch(`${API_BASE_URL}/v1/register`, {
+      const response = await fetch(`${API_BASE_URL}/api/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ matricula, senha }),
@@ -394,26 +396,20 @@
           showModal({
             success: true,
             title: "Cadastro realizado",
-            message: "Sua senha foi cadastrada com sucesso. Use matrícula:senha como api_key no ChatOpenAI.",
+            message: "Sua senha foi cadastrada com sucesso. Use o pacote pgl_auth (login com sua matrícula e senha) para obter o token de acesso ao proxy.",
           });
           form.reset();
-        } else if (status === 404) {
+        } else if (status === 403) {
           showModal({
             success: false,
             title: "Matrícula não encontrada",
-            message: "Essa matrícula não está cadastrada ou não está ativa. Fale com o professor.",
+            message: "Essa matrícula não está cadastrada ou não está ativa na disciplina. Fale com o professor.",
           });
         } else if (status === 409) {
           showModal({
             success: false,
             title: "Já cadastrado",
             message: "Essa matrícula já possui uma senha. Fale com o professor para redefini-la.",
-          });
-        } else if (status === 429) {
-          showModal({
-            success: false,
-            title: "Muitas tentativas",
-            message: "Muitas tentativas de cadastro nesta rede. Aguarde alguns minutos e tente novamente.",
           });
         } else if (status === 422) {
           showModal({
