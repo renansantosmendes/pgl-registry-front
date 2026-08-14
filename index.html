@@ -365,7 +365,7 @@
       const response = await fetch(`${API_BASE_URL}/api/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ matricula, senha }),
+        body: JSON.stringify({ registration_number: matricula, senha }),
       });
 
       let body = null;

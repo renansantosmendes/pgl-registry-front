@@ -37,10 +37,11 @@ bloqueia a chamada mesmo com a URL da API certa. Veja o README do
 
 Esta página só faz o **primeiro cadastro** de senha por matrícula
 (`POST /api/register` retorna `409` se a matrícula já tem senha em
-`pgl_auth.students`). Não existe reset self-service: como a matrícula
+`pgl_auth.students`). Não existe reset self-service aqui: como a matrícula
 sozinha não é segredo, permitir reset só com a matrícula deixaria qualquer
-pessoa sequestrar a conta de outro aluno. Reset de senha esquecida precisa
-de um fluxo administrativo no `pgl_auth_server` (ainda não implementado).
+pessoa sequestrar a conta de outro aluno. Redefinir uma senha esquecida é
+feito por um professor, via `POST /api/reset-password` no `pgl_auth_server`
+(autenticado com o próprio token do professor) — não por esta página.
 
 ## Depois do cadastro
 
@@ -49,7 +50,7 @@ o proxy, o aluno instala `pgl-auth` (`pip install pgl-auth`) e faz:
 
 ```python
 from pgl_auth import PGLAuthClient
-token = PGLAuthClient().login(matricula="...", senha="...")
+token = PGLAuthClient().login(registration_number="...", senha="...")
 
 from langchain_openai import ChatOpenAI
 llm = ChatOpenAI(base_url="https://pgl-proxy.vercel.app/v1", api_key=token)
