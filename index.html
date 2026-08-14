@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PGL Registry</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --card-bg: #ffffff;
+    --text: #0f172a;
+    --muted: #64748b;
+    --border: #e2e8f0;
+    --accent: #4f46e5;
+    --accent-hover: #4338ca;
+    --error: #dc2626;
+    --error-bg: #fef2f2;
+    --success: #16a34a;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: linear-gradient(160deg, #0f172a 0%, #1e293b 100%);
+    color: var(--text);
+  }
+
+  .card {
+    width: 100%;
+    max-width: 400px;
+    background: var(--card-bg);
+    border-radius: 16px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+    padding: 32px 28px;
+  }
+
+  .card h1 {
+    font-size: 1.35rem;
+    margin: 0 0 4px;
+    text-align: center;
+  }
+
+  .card .subtitle {
+    color: var(--muted);
+    font-size: 0.875rem;
+    text-align: center;
+    margin: 0 0 24px;
+  }
+
+  label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: var(--text);
+  }
+
+  .field {
+    margin-bottom: 16px;
+  }
+
+  input[type="text"],
+  input[type="password"] {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  input[type="text"]:focus,
+  input[type="password"]:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+  }
+
+  .password-wrapper {
+    position: relative;
+  }
+
+  .password-wrapper input {
+    padding-right: 40px;
+  }
+
+  .toggle-password {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 40px;
+    height: 100%;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.05rem;
+    line-height: 1;
+  }
+
+  .toggle-password:hover:not(:disabled) {
+    background: transparent;
+    color: var(--text);
+  }
+
+  .toggle-password svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .toggle-password .icon-eye-off {
+    display: none;
+  }
+
+  .toggle-password[aria-pressed="true"] .icon-eye {
+    display: none;
+  }
+
+  .toggle-password[aria-pressed="true"] .icon-eye-off {
+    display: block;
+  }
+
+  input[aria-invalid="true"] {
+    border-color: var(--error);
+  }
+
+  .field-error {
+    color: var(--error);
+    font-size: 0.78rem;
+    margin-top: 4px;
+    min-height: 1em;
+  }
+
+  button {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  button:hover:not(:disabled) {
+    background: var(--accent-hover);
+  }
+
+  button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .hint {
+    color: var(--muted);
+    font-size: 0.75rem;
+    margin-top: 20px;
+    text-align: center;
+    line-height: 1.4;
+  }
+
+  /* Modal */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.55);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    z-index: 10;
+  }
+
+  .overlay.visible {
+    display: flex;
+  }
+
+  .modal {
+    background: #fff;
+    border-radius: 14px;
+    max-width: 340px;
+    width: 100%;
+    padding: 24px;
+    text-align: center;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+  }
+
+  .modal .icon {
+    font-size: 2rem;
+    margin-bottom: 8px;
+  }
+
+  .modal h2 {
+    margin: 0 0 8px;
+    font-size: 1.1rem;
+  }
+
+  .modal p {
+    margin: 0 0 20px;
+    color: var(--muted);
+    font-size: 0.9rem;
+    line-height: 1.4;
+  }
+
+  .modal button {
+    width: auto;
+    padding: 8px 24px;
+  }
+</style>
+</head>
+<body>
+
+  <main class="card">
+    <h1>Cadastro de senha</h1>
+    <p class="subtitle">PGL &middot; matrícula + senha para acessar o proxy</p>
+
+    <form id="register-form" novalidate>
+      <div class="field">
+        <label for="matricula">Matrícula</label>
+        <input type="text" id="matricula" name="matricula" autocomplete="username" inputmode="numeric" required />
+        <div class="field-error" id="matricula-error"></div>
+      </div>
+
+      <div class="field">
+        <label for="senha">Senha</label>
+        <div class="password-wrapper">
+          <input type="password" id="senha" name="senha" autocomplete="new-password" required minlength="8" maxlength="72" />
+          <button type="button" class="toggle-password" data-target="senha" aria-label="Mostrar senha" aria-pressed="false">
+            <svg class="icon-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg class="icon-eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19M6.61 6.61C3.06 8.82 1 12 1 12s4 8 11 8a10.94 10.94 0 0 0 5.39-1.39M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M1 1l22 22"/></svg>
+          </button>
+        </div>
+        <div class="field-error" id="senha-error"></div>
+      </div>
+
+      <div class="field">
+        <label for="confirmar-senha">Repetir senha</label>
+        <div class="password-wrapper">
+          <input type="password" id="confirmar-senha" name="confirmar-senha" autocomplete="new-password" required />
+          <button type="button" class="toggle-password" data-target="confirmar-senha" aria-label="Mostrar senha" aria-pressed="false">
+            <svg class="icon-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg class="icon-eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19M6.61 6.61C3.06 8.82 1 12 1 12s4 8 11 8a10.94 10.94 0 0 0 5.39-1.39M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M1 1l22 22"/></svg>
+          </button>
+        </div>
+        <div class="field-error" id="confirmar-senha-error"></div>
+      </div>
+
+      <button type="submit" id="submit-btn">Registrar</button>
+    </form>
+
+    <p class="hint">
+      Sua matrícula precisa já estar cadastrada pelo professor. O cadastro
+      só funciona uma vez — se você já tem senha, fale com o professor
+      para redefini-la.
+    </p>
+  </main>
+
+  <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal">
+      <div class="icon" id="modal-icon">✅</div>
+      <h2 id="modal-title">Sucesso</h2>
+      <p id="modal-message"></p>
+      <button type="button" id="modal-close">OK</button>
+    </div>
+  </div>
+
+  <script>
+    // Base URL of the pgl_proxy API. Edit before deploying if the proxy
+    // moves; no build step is used, so this is a plain constant.
+    const API_BASE_URL = "https://pgl-proxy.vercel.app/";
+
+    const form = document.getElementById("register-form");
+    const matriculaInput = document.getElementById("matricula");
+    const senhaInput = document.getElementById("senha");
+    const confirmarSenhaInput = document.getElementById("confirmar-senha");
+    const submitBtn = document.getElementById("submit-btn");
+
+    const overlay = document.getElementById("overlay");
+    const modalIcon = document.getElementById("modal-icon");
+    const modalTitle = document.getElementById("modal-title");
+    const modalMessage = document.getElementById("modal-message");
+    const modalClose = document.getElementById("modal-close");
+
+    function setFieldError(input, message) {
+      const errorEl = document.getElementById(`${input.id}-error`);
+      errorEl.textContent = message || "";
+      input.setAttribute("aria-invalid", message ? "true" : "false");
+    }
+
+    function showModal({ success, title, message }) {
+      modalIcon.textContent = success ? "✅" : "⚠️";
+      modalTitle.textContent = title;
+      modalMessage.textContent = message;
+      overlay.classList.add("visible");
+    }
+
+    function hideModal() {
+      overlay.classList.remove("visible");
+    }
+
+    document.querySelectorAll(".toggle-password").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const target = document.getElementById(btn.dataset.target);
+        const showing = target.type === "text";
+        target.type = showing ? "password" : "text";
+        btn.setAttribute("aria-pressed", String(!showing));
+        btn.setAttribute("aria-label", showing ? "Mostrar senha" : "Ocultar senha");
+      });
+    });
+
+    modalClose.addEventListener("click", hideModal);
+    overlay.addEventListener("click", (event) => {
+      if (event.target === overlay) hideModal();
+    });
+
+    function validate() {
+      let valid = true;
+
+      const matricula = matriculaInput.value.trim();
+      if (!matricula) {
+        setFieldError(matriculaInput, "Informe sua matrícula.");
+        valid = false;
+      } else {
+        setFieldError(matriculaInput, "");
+      }
+
+      const senha = senhaInput.value;
+      if (senha.length < 8) {
+        setFieldError(senhaInput, "A senha precisa ter pelo menos 8 caracteres.");
+        valid = false;
+      } else if (senha.length > 72) {
+        setFieldError(senhaInput, "A senha pode ter no máximo 72 caracteres.");
+        valid = false;
+      } else {
+        setFieldError(senhaInput, "");
+      }
+
+      const confirmarSenha = confirmarSenhaInput.value;
+      if (confirmarSenha !== senha) {
+        setFieldError(confirmarSenhaInput, "As senhas não coincidem.");
+        valid = false;
+      } else {
+        setFieldError(confirmarSenhaInput, "");
+      }
+
+      return valid;
+    }
+
+    async function registerStudent(matricula, senha) {
+      const response = await fetch(`${API_BASE_URL}/v1/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ matricula, senha }),
+      });
+
+      let body = null;
+      try {
+        body = await response.json();
+      } catch (_) {
+        // Non-JSON response body; fall through to a generic message below.
+      }
+
+      return { ok: response.ok, status: response.status, body };
+    }
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      if (!validate()) return;
+
+      const matricula = matriculaInput.value.trim();
+      const senha = senhaInput.value;
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Registrando...";
+
+      try {
+        const { ok, status, body } = await registerStudent(matricula, senha);
+
+        if (ok) {
+          showModal({
+            success: true,
+            title: "Cadastro realizado",
+            message: "Sua senha foi cadastrada com sucesso. Use matrícula:senha como api_key no ChatOpenAI.",
+          });
+          form.reset();
+        } else if (status === 404) {
+          showModal({
+            success: false,
+            title: "Matrícula não encontrada",
+            message: "Essa matrícula não está cadastrada ou não está ativa. Fale com o professor.",
+          });
+        } else if (status === 409) {
+          showModal({
+            success: false,
+            title: "Já cadastrado",
+            message: "Essa matrícula já possui uma senha. Fale com o professor para redefini-la.",
+          });
+        } else if (status === 429) {
+          showModal({
+            success: false,
+            title: "Muitas tentativas",
+            message: "Muitas tentativas de cadastro nesta rede. Aguarde alguns minutos e tente novamente.",
+          });
+        } else if (status === 422) {
+          showModal({
+            success: false,
+            title: "Dados inválidos",
+            message: "Confira a matrícula e a senha informadas e tente novamente.",
+          });
+        } else {
+          showModal({
+            success: false,
+            title: "Erro ao cadastrar",
+            message: (body && body.detail) || "Não foi possível concluir o cadastro. Tente novamente mais tarde.",
+          });
+        }
+      } catch (err) {
+        showModal({
+          success: false,
+          title: "Erro de conexão",
+          message: "Não foi possível falar com o servidor. Verifique sua internet e tente novamente.",
+        });
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Registrar";
+      }
+    });
+  </script>
+</body>
+</html>
